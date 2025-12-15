@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时区转换器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 24px;
+            text-align: center;
+            font-size: 1.9em;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="datetime-local"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="datetime-local"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .city-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .city-selector select {
+            flex: 1;
+        }
+
+        .remove-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #ff3838;
+        }
+
+        .add-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #5568d3;
+        }
+
+        .convert-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .convert-btn:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-city {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .result-time {
+            font-size: 1.6em;
+            color: #667eea;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .result-date {
+            color: #666;
+            margin-top: 4px;
+            font-size: 0.88em;
+        }
+
+        .timezone-info {
+            color: #888;
+            font-size: 0.8em;
+            margin-top: 4px;
+        }
+
+        .timeline-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f6f7fb;
+            border-radius: 14px;
+            border: 1px solid #e6e7ef;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #444;
+            font-weight: 600;
+        }
+
+        .timeline-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .timeline-display {
+            font-size: 16px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .timeline-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 10px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .timeline-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 时区转换器</h1>
+        
+        <div class="input-section">
+            <div class="form-group">
+                <label for="source-city">源城市时区：</label>
+                <select id="source-city" required>
+                    <option value="">请选择...</option>
+                    <option value="Asia/Shanghai">北京 (UTC+8)</option>
+                    <option value="Asia/Tokyo">东京 (UTC+9)</option>
+                    <option value="Asia/Hong_Kong">香港 (UTC+8)</option>
+                    <option value="Asia/Singapore">新加坡 (UTC+8)</option>
+                    <option value="Asia/Seoul">首尔 (UTC+9)</option>
+                    <option value="America/New_York">纽约 (UTC-5/-4)</option>
+                    <option value="America/Los_Angeles">洛杉矶 (UTC-8/-7)</option>
+                    <option value="America/Chicago">芝加哥 (UTC-6/-5)</option>
+                    <option value="Europe/London">伦敦 (UTC+0/+1)</option>
+                    <option value="Europe/Paris">巴黎 (UTC+1/+2)</option>
+                    <option value="Europe/Berlin">柏林 (UTC+1/+2)</option>
+                    <option value="Europe/Moscow">莫斯科 (UTC+3)</option>
+                    <option value="Australia/Sydney">悉尼 (UTC+10/+11)</option>
+                    <option value="Australia/Melbourne">墨尔本 (UTC+10/+11)</option>
+                    <option value="Pacific/Auckland">奥克兰 (UTC+12/+13)</option>
+                    <option value="America/Toronto">多伦多 (UTC-5/-4)</option>
+                    <option value="America/Vancouver">温哥华 (UTC-8/-7)</option>
+                    <option value="Asia/Dubai">迪拜 (UTC+4)</option>
+                    <option value="Asia/Kolkata">新德里 (UTC+5:30)</option>
+                    <option value="America/Sao_Paulo">圣保罗 (UTC-3)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="source-date">选择日期（可选，默认今天）：</label>
+                <input type="date" id="source-date">
+            </div>
+
+            <div class="timeline-section">
+                <div class="timeline-header">
+                    <div class="timeline-label">在源城市选择时间点（24小时，15分钟刻度）</div>
+                    <div class="timeline-display" id="timeline-display">--:--</div>
+                </div>
+                <input type="range" id="timeline-slider" class="timeline-slider" min="0" max="1439" step="15" value="0">
+            </div>
+
+            <div class="form-group">
+                <label>目标城市时区：</label>
+                <div id="target-cities">
+                    <div class="city-selector">
+                        <select class="target-city-select" required>
+                            <option value="">请选择...</option>
+                            <option value="Asia/Shanghai">北京 (UTC+8)</option>
+                            <option value="Asia/Tokyo">东京 (UTC+9)</option>
+                            <option value="Asia/Hong_Kong">香港 (UTC+8)</option>
+                            <option value="Asia/Singapore">新加坡 (UTC+8)</option>
+                            <option value="Asia/Seoul">首尔 (UTC+9)</option>
+                            <option value="America/New_York">纽约 (UTC-5/-4)</option>
+                            <option value="America/Los_Angeles">洛杉矶 (UTC-8/-7)</option>
+                            <option value="America/Chicago">芝加哥 (UTC-6/-5)</option>
+                            <option value="Europe/London">伦敦 (UTC+0/+1)</option>
+                            <option value="Europe/Paris">巴黎 (UTC+1/+2)</option>
+                            <option value="Europe/Berlin">柏林 (UTC+1/+2)</option>
+                            <option value="Europe/Moscow">莫斯科 (UTC+3)</option>
+                            <option value="Australia/Sydney">悉尼 (UTC+10/+11)</option>
+                            <option value="Australia/Melbourne">墨尔本 (UTC+10/+11)</option>
+                            <option value="Pacific/Auckland">奥克兰 (UTC+12/+13)</option>
+                            <option value="America/Toronto">多伦多 (UTC-5/-4)</option>
+                            <option value="America/Vancouver">温哥华 (UTC-8/-7)</option>
+                            <option value="Asia/Dubai">迪拜 (UTC+4)</option>
+                            <option value="Asia/Kolkata">新德里 (UTC+5:30)</option>
+                            <option value="America/Sao_Paulo">圣保罗 (UTC-3)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="add-btn" onclick="addTargetCity()">+ 添加目标城市</button>
+            </div>
+
+            <button type="button" class="convert-btn" onclick="convertTime()">转换时间</button>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        const cityNames = {
+            'Asia/Shanghai': '北京',
+            'Asia/Tokyo': '东京',
+            'Asia/Hong_Kong': '香港',
+            'Asia/Singapore': '新加坡',
+            'Asia/Seoul': '首尔',
+            'America/New_York': '纽约',
+            'America/Los_Angeles': '洛杉矶',
+            'America/Chicago': '芝加哥',
+            'Europe/London': '伦敦',
+            'Europe/Paris': '巴黎',
+            'Europe/Berlin': '柏林',
+            'Europe/Moscow': '莫斯科',
+            'Australia/Sydney': '悉尼',
+            'Australia/Melbourne': '墨尔本',
+            'Pacific/Auckland': '奥克兰',
+            'America/Toronto': '多伦多',
+            'America/Vancouver': '温哥华',
+            'Asia/Dubai': '迪拜',
+            'Asia/Kolkata': '新德里',
+            'America/Sao_Paulo': '圣保罗'
+        };
+
+        function addTargetCity() {
+            const container = document.getElementById('target-cities');
+            const citySelector = document.createElement('div');
+            citySelector.className = 'city-selector';
+            citySelector.innerHTML = `
+                <select class="target-city-select" required>
+                    <option value="">请选择...</option>
+                    <option value="Asia/Shanghai">北京 (UTC+8)</option>
+                    <option value="Asia/Tokyo">东京 (UTC+9)</option>
+                    <option value="Asia/Hong_Kong">香港 (UTC+8)</option>
+                    <option value="Asia/Singapore">新加坡 (UTC+8)</option>
+                    <option value="Asia/Seoul">首尔 (UTC+9)</option>
+                    <option value="America/New_York">纽约 (UTC-5/-4)</option>
+                    <option value="America/Los_Angeles">洛杉矶 (UTC-8/-7)</option>
+                    <option value="America/Chicago">芝加哥 (UTC-6/-5)</option>
+                    <option value="Europe/London">伦敦 (UTC+0/+1)</option>
+                    <option value="Europe/Paris">巴黎 (UTC+1/+2)</option>
+                    <option value="Europe/Berlin">柏林 (UTC+1/+2)</option>
+                    <option value="Europe/Moscow">莫斯科 (UTC+3)</option>
+                    <option value="Australia/Sydney">悉尼 (UTC+10/+11)</option>
+                    <option value="Australia/Melbourne">墨尔本 (UTC+10/+11)</option>
+                    <option value="Pacific/Auckland">奥克兰 (UTC+12/+13)</option>
+                    <option value="America/Toronto">多伦多 (UTC-5/-4)</option>
+                    <option value="America/Vancouver">温哥华 (UTC-8/-7)</option>
+                    <option value="Asia/Dubai">迪拜 (UTC+4)</option>
+                    <option value="Asia/Kolkata">新德里 (UTC+5:30)</option>
+                    <option value="America/Sao_Paulo">圣保罗 (UTC-3)</option>
+                </select>
+                <button type="button" class="remove-btn" onclick="removeTargetCity(this)">删除</button>
+            `;
+            container.appendChild(citySelector);
+        }
+
+        function removeTargetCity(btn) {
+            const container = document.getElementById('target-cities');
+            if (container.children.length > 1) {
+                btn.parentElement.remove();
+            } else {
+                alert('至少需要保留一个目标城市！');
+            }
+        }
+
+        // 将源时区的本地时间转换为UTC时间戳（毫秒）
+        function sourceLocalTimeToUTC(year, month, day, hour, minute, sourceTimezone) {
+            // 使用迭代方法找到正确的UTC时间
+            // 思路：找到一个UTC时间，使得它在源时区中显示为输入的日期时间
+            
+            // 先创建一个Date对象（浏览器本地时区），作为初始估计
+            const localDate = new Date(year, month, day, hour, minute);
+            const localOffsetMinutes = localDate.getTimezoneOffset();
+            let utcTime = localDate.getTime() + (localOffsetMinutes * 60000);
+            
+            // 使用Intl API格式化器
+            const sourceFormatter = new Intl.DateTimeFormat('en', {
+                timeZone: sourceTimezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            
+            // 迭代调整，直到找到正确的UTC时间
+            for (let i = 0; i < 5; i++) {
+                const testDate = new Date(utcTime);
+                const sourceParts = sourceFormatter.formatToParts(testDate);
+                
+                const sourceYear = parseInt(sourceParts.find(p => p.type === 'year').value);
+                const sourceMonth = parseInt(sourceParts.find(p => p.type === 'month').value) - 1;
+                const sourceDay = parseInt(sourceParts.find(p => p.type === 'day').value);
+                const sourceHour = parseInt(sourceParts.find(p => p.type === 'hour').value);
+                const sourceMinute = parseInt(sourceParts.find(p => p.type === 'minute').value);
+                
+                // 比较源时区显示的时间和输入的时间
+                if (sourceYear === year && 
+                    sourceMonth === month && 
+                    sourceDay === day && 
+                    sourceHour === hour && 
+                    sourceMinute === minute) {
+                    // 找到了正确的UTC时间
+                    break;
+                }
+                
+                // 计算需要调整的时间差（分钟）
+                // 如果源时区显示的时间比输入的时间早，需要增加UTC时间
+                const sourceDate = new Date(sourceYear, sourceMonth, sourceDay, sourceHour, sourceMinute);
+                const inputDate = new Date(year, month, day, hour, minute);
+                const diffMinutes = (inputDate.getTime() - sourceDate.getTime()) / 60000;
+                
+                // 调整UTC时间
+                utcTime += diffMinutes * 60000;
+                
+                // 如果调整很小，可以提前退出
+                if (Math.abs(diffMinutes) < 1) {
+                    break;
+                }
+            }
+            
+            return utcTime;
+        }
+
+        function convertTime(options = {}) {
+            const silent = options.silent || false;
+            const sourceCity = document.getElementById('source-city').value;
+            const sourceDateInput = document.getElementById('source-date');
+            const targetSelects = document.querySelectorAll('.target-city-select');
+            const slider = document.getElementById('timeline-slider');
+            
+            if (!sourceCity) {
+                if (!silent) alert('请先选择源城市！');
+                return;
+            }
+
+            const targetCities = Array.from(targetSelects)
+                .map(select => select.value)
+                .filter(value => value !== '');
+
+            if (targetCities.length === 0) {
+                if (!silent) alert('请至少选择一个目标城市！');
+                const resultsDiv = document.getElementById('results');
+                if (resultsDiv) {
+                    resultsDiv.className = 'results';
+                    resultsDiv.innerHTML = '';
+                }
+                return;
+            }
+
+            // 获取日期（默认今天）
+            const dateStr = sourceDateInput && sourceDateInput.value ? sourceDateInput.value : null;
+            const baseDate = dateStr ? new Date(`${dateStr}T00:00:00`) : new Date();
+            const year = baseDate.getFullYear();
+            const month = baseDate.getMonth();
+            const day = baseDate.getDate();
+
+            // 使用时间轴（分钟）并四舍五入到15分钟
+            const minutesOfDay = slider ? roundTo15(parseInt(slider.value, 10) || 0) : 0;
+            const hour = Math.floor(minutesOfDay / 60);
+            const minute = minutesOfDay % 60;
+
+            updateTimelineDisplay(sourceCity, minutesOfDay);
+
+            // 将源时区的本地时间转换为UTC时间戳
+            const utcTime = sourceLocalTimeToUTC(year, month, day, hour, minute, sourceCity);
+            const utcDate = new Date(utcTime);
+            
+            // 组合源 + 目标城市（源城市也展示）
+            const allCities = [sourceCity, ...targetCities.filter(c => c && c !== sourceCity)];
+
+            // 使用 Intl API 进行时区转换
+            const results = [];
+            
+            allCities.forEach(targetCity => {
+                try {
+                    // 直接使用Intl.DateTimeFormat将UTC时间格式化为目标时区的时间
+                    const targetFormatter = new Intl.DateTimeFormat('zh-CN', {
+                        timeZone: targetCity,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    });
+
+                    const targetTimeStr = targetFormatter.format(utcDate);
+                    const targetDateStr = new Intl.DateTimeFormat('zh-CN', {
+                        timeZone: targetCity,
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    }).format(utcDate);
+                    
+                    // 获取目标时区的UTC偏移量用于显示
+                    const targetOffset = getTimezoneOffset(targetCity, utcDate);
+                    const timezoneOffset = formatTimezoneOffset(targetOffset);
+                    
+                    results.push({
+                        city: cityNames[targetCity] || targetCity,
+                        time: targetTimeStr.replace(/\//g, '-'),
+                        date: targetDateStr,
+                        timezone: timezoneOffset
+                    });
+                } catch (error) {
+                    console.error('转换错误:', error);
+                    results.push({
+                        city: cityNames[targetCity] || targetCity,
+                        time: '转换失败',
+                        date: '',
+                        timezone: ''
+                    });
+                }
+            });
+
+            // 显示结果
+            displayResults(results);
+        }
+
+        function getTimezoneOffset(timezone, date) {
+            // 使用Intl API获取时区偏移
+            // 创建一个格式化器，获取UTC和指定时区的时间部分
+            const utcFormatter = new Intl.DateTimeFormat('en', {
+                timeZone: 'UTC',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            const tzFormatter = new Intl.DateTimeFormat('en', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            // 格式化日期
+            const utcParts = utcFormatter.formatToParts(date);
+            const tzParts = tzFormatter.formatToParts(date);
+            
+            // 提取时间部分并转换为时间戳
+            const getTimeValue = (parts) => {
+                const y = parseInt(parts.find(p => p.type === 'year').value);
+                const m = parseInt(parts.find(p => p.type === 'month').value) - 1;
+                const d = parseInt(parts.find(p => p.type === 'day').value);
+                const h = parseInt(parts.find(p => p.type === 'hour').value);
+                const min = parseInt(parts.find(p => p.type === 'minute').value);
+                const s = parseInt(parts.find(p => p.type === 'second').value);
+                // 使用UTC构造函数避免时区问题
+                return Date.UTC(y, m, d, h, min, s);
+            };
+            
+            const utcTime = getTimeValue(utcParts);
+            const tzTime = getTimeValue(tzParts);
+            
+            // 计算偏移量（分钟）
+            // tzTime - utcTime 的差值就是时区偏移
+            return (tzTime - utcTime) / 60000;
+        }
+
+        function formatTimezoneOffset(offsetMinutes) {
+            const hours = Math.floor(Math.abs(offsetMinutes) / 60);
+            const minutes = Math.abs(offsetMinutes) % 60;
+            const sign = offsetMinutes >= 0 ? '+' : '-';
+            if (minutes === 0) {
+                return `UTC${sign}${hours}`;
+            } else {
+                return `UTC${sign}${hours}:${String(minutes).padStart(2, '0')}`;
+            }
+        }
+
+        function roundTo15(minutes) {
+            return Math.round(minutes / 15) * 15;
+        }
+
+        function minutesToHHMM(minutes) {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+
+        function updateTimelineDisplay(sourceCity, minutesOfDay) {
+            const display = document.getElementById('timeline-display');
+            if (!display) return;
+            const cityName = cityNames[sourceCity] || (sourceCity || '源城市');
+            display.textContent = `${cityName} ${minutesToHHMM(minutesOfDay)}`;
+        }
+
+        function syncSliderWithSourceTime() {
+            const sourceDateInput = document.getElementById('source-date');
+            const slider = document.getElementById('timeline-slider');
+            const sourceCity = document.getElementById('source-city').value;
+            if (!slider) return;
+            const now = new Date();
+            const minutesNow = now.getHours() * 60 + now.getMinutes();
+            const minutesOfDay = roundTo15(minutesNow);
+            slider.value = minutesOfDay;
+            updateTimelineDisplay(sourceCity, minutesOfDay);
+            if (sourceDateInput && !sourceDateInput.value) {
+                const y = now.getFullYear();
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                const d = String(now.getDate()).padStart(2, '0');
+                sourceDateInput.value = `${y}-${m}-${d}`;
+            }
+        }
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.className = 'results show';
+            
+            resultsDiv.innerHTML = results.map(result => `
+                <div class="result-card">
+                    <div class="result-city">${result.city}</div>
+                    <div class="result-time">${result.time}</div>
+                    <div class="result-date">${result.date}</div>
+                    <div class="timezone-info">${result.timezone}</div>
+                </div>
+            `).join('');
+        }
+
+        // 初始化：设置默认日期、同步时间轴、绑定事件
+        window.onload = function() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateInput = document.getElementById('source-date');
+            if (dateInput) {
+                dateInput.value = `${year}-${month}-${day}`;
+            }
+
+            // 同步时间轴
+            syncSliderWithSourceTime();
+
+            // 绑定事件：时间轴变化时实时转换
+            const slider = document.getElementById('timeline-slider');
+            if (slider) {
+                slider.addEventListener('input', () => convertTime({ silent: true }));
+            }
+
+            // 日期或源城市变动时，重新同步时间轴并转换
+            const sourceDateInput = document.getElementById('source-date');
+            const sourceCitySelect = document.getElementById('source-city');
+            if (sourceDateInput) {
+                sourceDateInput.addEventListener('change', () => {
+                    syncSliderWithSourceTime();
+                    convertTime({ silent: true });
+                });
+            }
+            if (sourceCitySelect) {
+                sourceCitySelect.addEventListener('change', () => {
+                    syncSliderWithSourceTime();
+                    convertTime({ silent: true });
+                });
+            }
+
+            // 首次转换以展示初始值
+            convertTime({ silent: true });
+        };
+    </script>
+</body>
+</html>
